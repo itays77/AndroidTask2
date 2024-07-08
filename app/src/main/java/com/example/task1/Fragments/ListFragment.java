@@ -3,64 +3,79 @@ package com.example.task1.Fragments;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.task1.Adapters.ScoreAdapter;
+import com.example.task1.Interfaces.Callback_ListItemClicked;
+import com.example.task1.Model.GameScore;
+import java.util.ArrayList;
+import java.util.Collections;
 import com.example.task1.R;
+import com.example.task1.Utilities.SharePreferencesManager;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textview.MaterialTextView;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link ListFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Collections;
+
+
 public class ListFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private RecyclerView list_RCV_scores;
+    private MaterialTextView list_LBL_title;
+    private ScoreAdapter scoreAdapter;
+    private Callback_ListItemClicked callbackListItemClicked;
 
     public ListFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment ListFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static ListFragment newInstance(String param1, String param2) {
-        ListFragment fragment = new ListFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
+    public void setCallbackListItemClicked(Callback_ListItemClicked callbackListItemClicked) {
+        this.callbackListItemClicked = callbackListItemClicked;
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_list, container, false);
+        View view = inflater.inflate(R.layout.fragment_list, container, false);
+        findViews(view);
+        initViews();
+        return view;
+    }
+
+    private void findViews(View view) {
+        list_RCV_scores = view.findViewById(R.id.list_RCV_scores);
+    }
+
+    private void initViews() {
+        ArrayList<GameScore> scores = getScores();
+
+        // Sort scores in descending order
+        Collections.sort(scores, (s1, s2) -> Integer.compare(s2.getScore(), s1.getScore()));
+
+        scoreAdapter = new ScoreAdapter(scores, new ScoreAdapter.ScoreClickListener() {
+            @Override
+            public void onScoreClick(double lat, double lon) {
+                if (callbackListItemClicked != null) {
+                    callbackListItemClicked.listItemClicked(lat, lon);
+                }
+            }
+        });
+        list_RCV_scores.setLayoutManager(new LinearLayoutManager(getContext()));
+        list_RCV_scores.setAdapter(scoreAdapter);
+    }
+
+    private ArrayList<GameScore> getScores() {
+        SharePreferencesManager spm = SharePreferencesManager.getInstance();
+        return spm.getScores();
     }
 }

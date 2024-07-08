@@ -1,5 +1,16 @@
 package com.example.task1;
 
+
+import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import com.example.task1.Model.GameScore;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
@@ -7,11 +18,25 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatImageView;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import com.example.task1.Enums.GameSpeed;
 import com.example.task1.Logic.GameManager;
+import com.example.task1.Utilities.MoveDetector;
+import com.example.task1.Utilities.SharePreferencesManager;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.material.button.MaterialButton;
+import com.example.task1.Enums.GameModes;
+import com.example.task1.Enums.GameSpeed;
+import com.google.android.material.textview.MaterialTextView;
+
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 
 
-public class MainActivity extends AppCompatActivity {
+public class GameActivity extends AppCompatActivity implements GameManager.GameManagerListener {
 
     private MaterialButton main_BTN_left;
     private MaterialButton main_BTN_right;
@@ -24,17 +49,54 @@ public class MainActivity extends AppCompatActivity {
     private static final int ROWS = 8;
     private static final int COLS = 5;
     private static final int PLAYER_ROW = ROWS - 1;
-    private static final long OBSTACLE_DELAY = 1000; // 1 second
+    private static final long OBSTACLE_DELAY = 1000;
+    private GameModes gameMode;
+    private GameSpeed gameSpeed;
+
+    private FusedLocationProviderClient fusedLocationClient;
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
+    private MaterialTextView scoreTextView;
+    private boolean gameEnded = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_game);
+
+        // Ensure SharePreferencesManager is initialized
+//        try {
+//            SharePreferencesManager.getInstance();
+//        } catch (IllegalStateException e) {
+//            SharePreferencesManager.init(getApplicationContext());
+//        }
+
+        gameMode = (GameModes) getIntent().getSerializableExtra("GAME_MODE");
+        gameSpeed = (GameSpeed) getIntent().getSerializableExtra("GAME_SPEED");
+        boolean playStartSound = getIntent().getBooleanExtra("PLAY_START_SOUND", false);
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         findViews();
-        gameManager = new GameManager(3, this); // 3 initial lives
+        gameManager = new GameManager(3, this, gameMode);
+        gameManager.setListener(this);
+
+
+        if (playStartSound) {
+            gameManager.playStartSound();
+        }
+
         initViews();
+        gameManager.startGame();
         startGame();
+
+        View rootView = findViewById(android.R.id.content);
+        rootView.setOnClickListener(v -> {
+            if (gameEnded && gameManager == null) { // Add check for null gameManager
+                returnToMainMenu();
+            }
+        });
+
     }
 
     private void findViews() {
@@ -52,26 +114,43 @@ public class MainActivity extends AppCompatActivity {
                 main_LAY_board[col][row] = findViewById(id);
             }
         }
-        coinsTextView = findViewById(R.id.coins_text_view);
+
+        scoreTextView = findViewById(R.id.score_text_view);
     }
 
     private void initViews() {
-        main_BTN_left.setOnClickListener(v -> {
-            gameManager.movePlayer(-1);
-            updateUI();
-        });
-        main_BTN_right.setOnClickListener(v -> {
-            gameManager.movePlayer(1);
-            updateUI();
-        });
+        if (gameMode == GameModes.BUTTONS) {
+            main_BTN_left.setOnClickListener(v -> {
+                gameManager.movePlayer(-1);
+                updateUI();
+            });
+            main_BTN_right.setOnClickListener(v -> {
+                gameManager.movePlayer(1);
+                updateUI();
+            });
+        } else {
+            main_BTN_left.setVisibility(View.GONE);
+            main_BTN_right.setVisibility(View.GONE);
+        }
 
         updateUI();
         updateHeartDisplay();
+        updateScoreDisplay(0);
     }
 
-    private void startGame() {
+    private void updateScoreDisplay(int score) {
+        scoreTextView.setText("Score: " + score);
+    }
 
-        gameManager.playStartSound();
+    @Override
+    public void onScoreUpdated(int newScore) {
+        runOnUiThread(() -> updateScoreDisplay(newScore));
+    }
+
+
+    private void startGame() {
+//        gameManager.startGame();
+
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -83,13 +162,13 @@ public class MainActivity extends AppCompatActivity {
                     if (!gameManager.isGameOver()) {
                         switch (collidedItemType) {
                             case BOMB:
-                                Toast.makeText(MainActivity.this, "Ouch! You've been hit!", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(GameActivity.this, "Ouch! You've been hit!", Toast.LENGTH_SHORT).show();
                                 break;
                             case COIN:
-                                Toast.makeText(MainActivity.this, "You got a coin!", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(GameActivity.this, "You got a coin!", Toast.LENGTH_SHORT).show();
                                 break;
                             case HEART:
-                                Toast.makeText(MainActivity.this, "Extra life!", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(GameActivity.this, "Extra life!", Toast.LENGTH_SHORT).show();
                                 break;
                         }
                     } else {
@@ -99,11 +178,12 @@ public class MainActivity extends AppCompatActivity {
                 }
                 updateUI();
                 if (!gameManager.isGameOver()) {
-                    handler.postDelayed(this, OBSTACLE_DELAY);
+                    handler.postDelayed(this, gameSpeed.getDelay());
                 }
             }
-        }, OBSTACLE_DELAY);
+        }, gameSpeed.getDelay());
     }
+
 
     private void updateHeartDisplay() {
         for (int i = 0; i < main_IMG_hearts.length; i++) {
@@ -121,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
                     GameManager.ItemType itemType = gameManager.getItemType(row, col);
                     switch (itemType) {
                         case BOMB:
-                            main_LAY_board[col][row].setImageResource(R.drawable.bomb);
+                            main_LAY_board[col][row].setImageResource(R.drawable.alien);
                             main_LAY_board[col][row].setVisibility(View.VISIBLE);
                             break;
                         case HEART:
@@ -140,18 +220,107 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         updateHeartDisplay();
-        coinsTextView.setText("Coins: " + gameManager.getCoins());
     }
+
+    @Override
+    public void onPlayerMoved() {
+        runOnUiThread(this::updateUI);
+    }
+
+    private void saveScore(int score) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                    LOCATION_PERMISSION_REQUEST_CODE);
+            return;
+        }
+
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(this, location -> {
+                    SharePreferencesManager spm = SharePreferencesManager.getInstance();
+                    ArrayList<GameScore> scores = spm.getScores();
+                    if (location != null) {
+                        scores.add(new GameScore(score, location.getLatitude(), location.getLongitude()));
+                    } else {
+                        scores.add(new GameScore(score, 0, 0)); // Using 0, 0 as default coordinates
+                    }
+                    spm.saveScores(scores);
+                });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission was granted, you can now save the score with location
+                saveScore(gameManager.getCoins()); // Assuming coins are the score
+            } else {
+                // Permission denied, handle it gracefully (e.g., save score without location)
+                SharePreferencesManager spm = SharePreferencesManager.getInstance();
+                ArrayList<GameScore> scores = spm.getScores();
+                scores.add(new GameScore(gameManager.getCoins(), 0, 0)); // Using 0, 0 as default coordinates
+                spm.saveScores(scores);
+            }
+        }
+    }
+
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (gameManager != null) {
+            gameManager.startSensor();
+        }
+    }
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (gameManager != null) {
+            gameManager.stopSensor();
+        }
+    }
+
 
     private void gameOver() {
         handler.removeCallbacksAndMessages(null);
-        gameManager.stopSounds();
-        Toast.makeText(this, "Game Over!", Toast.LENGTH_LONG).show();
+        int finalScore = 0;
+        if (gameManager != null) {
+            finalScore = gameManager.getScore();
+            gameManager.stopGame();
+            gameManager.stopSounds();
+            gameManager.stopSensor(); // Add this line
+            gameManager = null; // Set to null after stopping everything
+        }
+
+        String message = "Game Over! Your score: " + finalScore;
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+
+        saveScore(finalScore);
+        gameEnded = true;
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        gameManager.stopSounds();
+        if (gameManager != null) {
+            gameManager.stopSounds();
+            gameManager = null;
+        }
+    }
+
+    private void returnToMainMenu() {
+        if (gameManager != null) {
+            gameManager.stopSounds();
+            gameManager.stopSensor(); // Add this line to ensure the sensor is stopped
+        }
+        gameManager = null; // Set to null after stopping everything
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(intent);
+        finish();
     }
 }

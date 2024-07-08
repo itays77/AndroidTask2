@@ -1,19 +1,16 @@
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-
+package com.example.task1.Model;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class Score {
+public class GameScore {
     private int score;
     private double latitude;
     private double longitude;
     private long timestamp;
 
-    public Score(int score, double latitude, double longitude) {
+    public GameScore(int score, double latitude, double longitude) {
         this.score = score;
         this.latitude = latitude;
         this.longitude = longitude;

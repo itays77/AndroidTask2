@@ -5,50 +5,53 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    android:background="@android:color/white"
+    tools:context=".GameActivity">
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/score_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:text="Score: 0"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="#000000"/>
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/main_LAY_hearts"
-        android:layout_width="140dp"
-        android:layout_height="40dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp">
 
-        <TextView
-            android:id="@+id/coins_text_view"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
-            android:text="Coins: 0"
-            android:textSize="18sp"/>
-
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/main_IMG_heart1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/heart" />
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/main_IMG_heart2"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/heart" />
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/main_IMG_heart3"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/heart" />
+
     </androidx.appcompat.widget.LinearLayoutCompat>
+
 
 
 
@@ -72,7 +75,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:src="@drawable/bomb"
+                android:src="@drawable/alien"
                 android:visibility="invisible" />
 
             <androidx.appcompat.widget.AppCompatImageView
@@ -80,7 +83,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:src="@drawable/bomb"
+                android:src="@drawable/alien"
                 android:visibility="invisible" />
 
             <androidx.appcompat.widget.AppCompatImageView
@@ -88,7 +91,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:src="@drawable/bomb"
+                android:src="@drawable/alien"
                 android:visibility="invisible" />
 
             <androidx.appcompat.widget.AppCompatImageView
@@ -96,7 +99,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:src="@drawable/bomb"
+                android:src="@drawable/alien"
                 android:visibility="invisible" />
 
             <androidx.appcompat.widget.AppCompatImageView
@@ -104,7 +107,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:src="@drawable/bomb"
+                android:src="@drawable/alien"
                 android:visibility="invisible" />
 
             <androidx.appcompat.widget.AppCompatImageView
@@ -112,7 +115,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:src="@drawable/bomb"
+                android:src="@drawable/alien"
                 android:visibility="invisible" />
 
             <androidx.appcompat.widget.AppCompatImageView
@@ -120,7 +123,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:src="@drawable/bomb"
+                android:src="@drawable/alien"
                 android:visibility="invisible" />
 
             <androidx.appcompat.widget.AppCompatImageView
@@ -128,7 +131,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:src="@drawable/bomb"
+                android:src="@drawable/alien"
                 android:visibility="invisible" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
@@ -144,7 +147,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:src="@drawable/bomb"
+                android:src="@drawable/alien"
                 android:visibility="invisible" />
 
             <androidx.appcompat.widget.AppCompatImageView
@@ -152,7 +155,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:src="@drawable/bomb"
+                android:src="@drawable/alien"
                 android:visibility="invisible" />
 
             <androidx.appcompat.widget.AppCompatImageView
@@ -160,7 +163,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:src="@drawable/bomb"
+                android:src="@drawable/alien"
                 android:visibility="invisible" />
 
             <androidx.appcompat.widget.AppCompatImageView
@@ -168,7 +171,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:src="@drawable/bomb"
+                android:src="@drawable/alien"
                 android:visibility="invisible" />
 
             <androidx.appcompat.widget.AppCompatImageView
@@ -176,7 +179,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:src="@drawable/bomb"
+                android:src="@drawable/alien"
                 android:visibility="invisible" />
 
             <androidx.appcompat.widget.AppCompatImageView
@@ -184,7 +187,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:src="@drawable/bomb"
+                android:src="@drawable/alien"
                 android:visibility="invisible" />
 
             <androidx.appcompat.widget.AppCompatImageView
@@ -192,7 +195,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:src="@drawable/bomb"
+                android:src="@drawable/alien"
                 android:visibility="invisible" />
 
             <androidx.appcompat.widget.AppCompatImageView
@@ -200,7 +203,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:src="@drawable/bomb"
+                android:src="@drawable/alien"
                 android:visibility="invisible" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
@@ -216,7 +219,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:src="@drawable/bomb"
+                android:src="@drawable/alien"
                 android:visibility="invisible" />
 
             <androidx.appcompat.widget.AppCompatImageView
@@ -224,7 +227,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:src="@drawable/bomb"
+                android:src="@drawable/alien"
                 android:visibility="invisible" />
 
             <androidx.appcompat.widget.AppCompatImageView
@@ -232,7 +235,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:src="@drawable/bomb"
+                android:src="@drawable/alien"
                 android:visibility="invisible" />
 
             <androidx.appcompat.widget.AppCompatImageView
@@ -240,7 +243,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:src="@drawable/bomb"
+                android:src="@drawable/alien"
                 android:visibility="invisible" />
 
             <androidx.appcompat.widget.AppCompatImageView
@@ -248,7 +251,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:src="@drawable/bomb"
+                android:src="@drawable/alien"
                 android:visibility="invisible" />
 
             <androidx.appcompat.widget.AppCompatImageView
@@ -256,7 +259,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:src="@drawable/bomb"
+                android:src="@drawable/alien"
                 android:visibility="invisible" />
 
             <androidx.appcompat.widget.AppCompatImageView
@@ -264,7 +267,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:src="@drawable/bomb"
+                android:src="@drawable/alien"
                 android:visibility="invisible" />
 
             <androidx.appcompat.widget.AppCompatImageView
@@ -272,7 +275,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:src="@drawable/bomb"
+                android:src="@drawable/alien"
                 android:visibility="invisible" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
