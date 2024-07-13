@@ -4,15 +4,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
-
 import com.example.task1.Model.GameScore;
 import com.example.task1.R;
 import com.google.android.material.color.utilities.Score;
-
 import java.util.ArrayList;
 
 public class ScoreAdapter extends RecyclerView.Adapter<ScoreAdapter.ScoreViewHolder> {
@@ -44,7 +40,7 @@ public class ScoreAdapter extends RecyclerView.Adapter<ScoreAdapter.ScoreViewHol
     }
 
     public class ScoreViewHolder extends RecyclerView.ViewHolder {
-        TextView timeTextView; // Changed from playerNameTextView
+        TextView timeTextView;
         TextView scoreTextView;
 
         ScoreViewHolder(@NonNull View itemView) {

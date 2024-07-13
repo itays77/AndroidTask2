@@ -13,11 +13,12 @@ public class MoveDetector {
     private Sensor sensor;
     private SensorEventListener sensorEventListener;
 
-    private static final int SENSOR_DELAY = SensorManager.SENSOR_DELAY_GAME; // Faster updates
-    private static final float TILT_THRESHOLD = 1.5f; // Adjusted threshold
-    private static final float ALPHA = 0.8f; // For low-pass filter
+    private static final int SENSOR_DELAY = SensorManager.SENSOR_DELAY_GAME;
+    private static final float MOVE_THRESHOLD = 2.0f;
+    private static final float ALPHA = 0.8f;
 
     private float filteredX = 0f;
+    private float lastMovementX = 0f;
     private MoveCallback moveCallback;
 
     public MoveDetector(Context context, MoveCallback moveCallback) {
@@ -48,10 +49,16 @@ public class MoveDetector {
     }
 
     private void calculateMove(float x) {
-        if (x > TILT_THRESHOLD) {
-            moveCallback.moveLeft();
-        } else if (x < -TILT_THRESHOLD) {
-            moveCallback.moveRight();
+        if (Math.abs(x - lastMovementX) > MOVE_THRESHOLD) {
+            if (x < -MOVE_THRESHOLD && lastMovementX >= -MOVE_THRESHOLD) {
+                moveCallback.moveRight();
+                lastMovementX = x;
+            } else if (x > MOVE_THRESHOLD && lastMovementX <= MOVE_THRESHOLD) {
+                moveCallback.moveLeft();
+                lastMovementX = x;
+            }
+        } else if (Math.abs(x) < MOVE_THRESHOLD / 2) {
+            lastMovementX = 0; // Reset when returning to center
         }
     }
 

@@ -1,12 +1,9 @@
 package com.example.task1.Utilities;
-
 import android.content.Context;
 import android.content.SharedPreferences;
-
 import com.example.task1.Model.GameScore;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 public class SharePreferencesManager {

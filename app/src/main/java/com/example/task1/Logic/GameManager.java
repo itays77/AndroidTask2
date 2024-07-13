@@ -1,32 +1,28 @@
 package com.example.task1.Logic;
 
-
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
-
 import com.example.task1.Enums.GameModes;
 import com.example.task1.Interfaces.MoveCallback;
 import com.example.task1.R;
 import com.example.task1.Utilities.MoveDetector;
 import com.example.task1.Utilities.SoundPlayer;
+import com.example.task1.GameActivity;
 
 public class GameManager {
     private int lives;
     private boolean[][] obstacles;
-    private static final int ROWS = 8;
-    private static final int COLS = 5;
     private int playerCol;
     private int tickCounter;
     private static final int OBSTACLE_SPAWN_INTERVAL = 2;
     private ItemType[][] itemTypes;
     private int coins;
     private static final int DRILL_INTERVAL = 7;
-    private static final float BOMB_PROBABILITY = 0.85f; // 85% chance for bombs
-    private static final float COIN_PROBABILITY = 0.10f; // 10% chance for coin
+    private static final float BOMB_PROBABILITY = 0.85f;
+    private static final float COIN_PROBABILITY = 0.10f;
     private int bombCounter;
     private SoundPlayer soundPlayer;
-
     private MoveDetector moveDetector;
     private GameModes gameMode;
     private GameManagerListener listener;
@@ -36,12 +32,10 @@ public class GameManager {
     private Handler scoreHandler = new Handler();
     private Runnable scoreRunnable;
     private Handler moveHandler;
-    private static final long MOVE_DELAY = 100; // Milliseconds
+    private static final long MOVE_DELAY = 100;
+    private static final long MOVE_COOLDOWN = 300;
+    private long lastMoveTime = 0;
 
-
-//    public void startGame() {
-//
-//    }
 
     public enum ItemType {
         BOMB, HEART, COIN, EMPTY
@@ -49,14 +43,14 @@ public class GameManager {
 
     public GameManager(int initialLives, Context context, GameModes gameMode) {
         this.lives = initialLives;
-        this.obstacles = new boolean[ROWS][COLS];
-        this.itemTypes = new ItemType[ROWS][COLS];
-        for (int row = 0; row < ROWS; row++) {
-            for (int col = 0; col < COLS; col++) {
+        this.obstacles = new boolean[GameActivity.ROWS][GameActivity.COLS];
+        this.itemTypes = new ItemType[GameActivity.ROWS][GameActivity.COLS];
+        for (int row = 0; row < GameActivity.ROWS; row++) {
+            for (int col = 0; col < GameActivity.COLS; col++) {
                 itemTypes[row][col] = ItemType.EMPTY;
             }
         }
-        this.playerCol = COLS / 2; // Start in the middle column
+        this.playerCol = GameActivity.COLS / 2;
         this.tickCounter = 0;
         this.score = 0;
         this.bombCounter = 0;
@@ -103,10 +97,6 @@ public class GameManager {
         scoreHandler.removeCallbacks(scoreRunnable);
     }
 
-
-
-
-
     public interface GameManagerListener {
         void onPlayerMoved();
         void onScoreUpdated(int newScore);
@@ -143,8 +133,8 @@ public class GameManager {
     }
 
     public void moveObstacles() {
-        for (int col = 0; col < COLS; col++) {
-            for (int row = ROWS - 1; row > 0; row--) {
+        for (int col = 0; col < GameActivity.COLS; col++) {
+            for (int row = GameActivity.ROWS - 1; row > 0; row--) {
                 obstacles[row][col] = obstacles[row - 1][col];
                 itemTypes[row][col] = itemTypes[row - 1][col];
             }
@@ -155,7 +145,7 @@ public class GameManager {
 
     public void spawnItem() {
         bombCounter++;
-        int randomCol = (int) (Math.random() * COLS);
+        int randomCol = (int) (Math.random() * GameActivity.COLS);
         ItemType itemType;
 
         if (bombCounter % DRILL_INTERVAL == 0) {
@@ -177,7 +167,7 @@ public class GameManager {
 
     public void movePlayer(int direction) {
         int newCol = playerCol + direction;
-        if (newCol >= 0 && newCol < COLS) {
+        if (newCol >= 0 && newCol < GameActivity.COLS) {
             playerCol = newCol;
         }
     }
@@ -195,7 +185,7 @@ public class GameManager {
     }
 
     public boolean checkCollision() {
-        return obstacles[ROWS - 1][playerCol];
+        return obstacles[GameActivity.ROWS - 1][playerCol];
     }
 
     public ItemType getItemType(int row, int col) {
@@ -203,7 +193,7 @@ public class GameManager {
     }
 
     public ItemType getCollidedItemType() {
-        return itemTypes[ROWS - 1][playerCol];
+        return itemTypes[GameActivity.ROWS - 1][playerCol];
     }
 
     public void handleCollision(ItemType itemType) {
@@ -227,13 +217,17 @@ public class GameManager {
     }
 
     private void queueMove(int direction) {
-        moveHandler.removeCallbacksAndMessages(null);
-        moveHandler.postDelayed(() -> {
-            movePlayer(direction);
-            if (listener != null) {
-                listener.onPlayerMoved();
-            }
-        }, MOVE_DELAY);
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastMoveTime > MOVE_COOLDOWN) {
+            moveHandler.removeCallbacksAndMessages(null);
+            moveHandler.postDelayed(() -> {
+                movePlayer(direction);
+                if (listener != null) {
+                    listener.onPlayerMoved();
+                }
+                lastMoveTime = System.currentTimeMillis();
+            }, MOVE_DELAY);
+        }
     }
 
     public void startSensor() {
@@ -274,9 +268,12 @@ public class GameManager {
         return coins;
     }
 
+    public void setCoins(int coins) {
+        this.coins = coins;
+    }
+
     public void playStartSound() {
         soundPlayer.playSound(R.raw.start);
     }
-
 
 }

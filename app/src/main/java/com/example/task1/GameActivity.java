@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-
 import com.example.task1.Model.GameScore;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -20,7 +19,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatImageView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-
 import com.example.task1.Enums.GameSpeed;
 import com.example.task1.Logic.GameManager;
 import com.example.task1.Utilities.MoveDetector;
@@ -31,7 +29,6 @@ import com.google.android.material.button.MaterialButton;
 import com.example.task1.Enums.GameModes;
 import com.example.task1.Enums.GameSpeed;
 import com.google.android.material.textview.MaterialTextView;
-
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 
@@ -46,13 +43,13 @@ public class GameActivity extends AppCompatActivity implements GameManager.GameM
     private GameManager gameManager;
     private final Handler handler = new Handler();
 
-    private static final int ROWS = 8;
-    private static final int COLS = 5;
+    public static final int ROWS = 8;
+    public static final int COLS = 5;
     private static final int PLAYER_ROW = ROWS - 1;
     private static final long OBSTACLE_DELAY = 1000;
     private GameModes gameMode;
     private GameSpeed gameSpeed;
-
+    private boolean gamePaused = false;
     private FusedLocationProviderClient fusedLocationClient;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private MaterialTextView scoreTextView;
@@ -63,14 +60,6 @@ public class GameActivity extends AppCompatActivity implements GameManager.GameM
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
-
-        // Ensure SharePreferencesManager is initialized
-//        try {
-//            SharePreferencesManager.getInstance();
-//        } catch (IllegalStateException e) {
-//            SharePreferencesManager.init(getApplicationContext());
-//        }
-
         gameMode = (GameModes) getIntent().getSerializableExtra("GAME_MODE");
         gameSpeed = (GameSpeed) getIntent().getSerializableExtra("GAME_SPEED");
         boolean playStartSound = getIntent().getBooleanExtra("PLAY_START_SOUND", false);
@@ -149,8 +138,6 @@ public class GameActivity extends AppCompatActivity implements GameManager.GameM
 
 
     private void startGame() {
-//        gameManager.startGame();
-
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -244,7 +231,7 @@ public class GameActivity extends AppCompatActivity implements GameManager.GameM
                     if (location != null) {
                         scores.add(new GameScore(score, location.getLatitude(), location.getLongitude()));
                     } else {
-                        scores.add(new GameScore(score, 0, 0)); // Using 0, 0 as default coordinates
+                        scores.add(new GameScore(score, 0, 0));
                     }
                     spm.saveScores(scores);
                 });
@@ -255,35 +242,61 @@ public class GameActivity extends AppCompatActivity implements GameManager.GameM
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permission was granted, you can now save the score with location
                 saveScore(gameManager.getCoins()); // Assuming coins are the score
             } else {
-                // Permission denied, handle it gracefully (e.g., save score without location)
                 SharePreferencesManager spm = SharePreferencesManager.getInstance();
                 ArrayList<GameScore> scores = spm.getScores();
-                scores.add(new GameScore(gameManager.getCoins(), 0, 0)); // Using 0, 0 as default coordinates
+                scores.add(new GameScore(gameManager.getCoins(), 0, 0));
                 spm.saveScores(scores);
             }
         }
     }
 
 
+    private void resumeGame() {
+        gamePaused = false;
+        startGame(); // This will restart the game loop
+    }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (gameManager != null) {
+        if (gameManager != null && !gameEnded) {
             gameManager.startSensor();
+            if (gamePaused) {
+                resumeGame();
+            }
         }
+    }
+
+    private void pauseGame() {
+        handler.removeCallbacksAndMessages(null);
+        gamePaused = true;
+
     }
     @Override
     protected void onPause() {
         super.onPause();
-        if (gameManager != null) {
+        if (gameManager != null && !gameEnded) {
             gameManager.stopSensor();
+            pauseGame();
         }
     }
 
+
+    private void cleanupGame() {
+        handler.removeCallbacksAndMessages(null);
+        if (gameManager != null) {
+            gameManager.stopSounds();
+            gameManager.stopSensor();
+            gameManager.stopGame();
+            if (!gameEnded) {
+                saveScore(gameManager.getScore()); // Save the score if the game wasn't properly ended
+            }
+            gameManager = null;
+        }
+        gameEnded = true;
+    }
 
     private void gameOver() {
         handler.removeCallbacksAndMessages(null);
@@ -292,8 +305,7 @@ public class GameActivity extends AppCompatActivity implements GameManager.GameM
             finalScore = gameManager.getScore();
             gameManager.stopGame();
             gameManager.stopSounds();
-            gameManager.stopSensor(); // Add this line
-            gameManager = null; // Set to null after stopping everything
+            gameManager.stopSensor();
         }
 
         String message = "Game Over! Your score: " + finalScore;
@@ -301,16 +313,18 @@ public class GameActivity extends AppCompatActivity implements GameManager.GameM
 
         saveScore(finalScore);
         gameEnded = true;
+        gameManager = null;
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (gameManager != null) {
-            gameManager.stopSounds();
-            gameManager = null;
-        }
+        cleanupGame();
     }
+
+
+
+
 
     private void returnToMainMenu() {
         if (gameManager != null) {
