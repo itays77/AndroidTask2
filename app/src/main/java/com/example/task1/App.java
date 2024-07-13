@@ -11,5 +11,6 @@ public class App extends Application {
         super.onCreate();
         SharePreferencesManager.init(this);
         SignalManager.init(this);
+        //
     }
 }
